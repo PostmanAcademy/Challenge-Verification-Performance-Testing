@@ -1,0 +1,175 @@
+{
+  "name": "Challenge Verification Performance",
+  "description": "k6 load-test metrics for the /v4/challenge endpoints. Faceted by endpoint and HTTP status (200 = good, non-200 = bad).",
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Overview",
+      "description": "Golden signals per endpoint and good/bad split.",
+      "widgets": [
+        {
+          "title": "Total Requests",
+          "layout": { "column": 1, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT sum(k6_challenge_verification_performance_http_reqs) AS 'requests'" }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Error % (non-200)",
+          "layout": { "column": 4, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT filter(sum(k6_challenge_verification_performance_http_reqs), WHERE status != '200') / sum(k6_challenge_verification_performance_http_reqs) * 100 AS 'error %'" }
+            ],
+            "thresholds": [
+              { "alertSeverity": "WARNING", "value": 1 },
+              { "alertSeverity": "CRITICAL", "value": 5 }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Latency p95 (ms)",
+          "layout": { "column": 7, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT percentile(k6_challenge_verification_performance_http_req_duration, 95) AS 'p95 ms'" }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Peak VUs",
+          "layout": { "column": 10, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT max(k6_challenge_verification_performance_vus) AS 'VUs'" }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Latency p95 / p99 by endpoint",
+          "layout": { "column": 1, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT percentile(k6_challenge_verification_performance_http_req_duration, 95, 99) FACET endpoint TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Latency p95: good (200) vs bad (non-200)",
+          "layout": { "column": 7, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT percentile(k6_challenge_verification_performance_http_req_duration, 95) FACET status TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Throughput (req/s) by endpoint",
+          "layout": { "column": 1, "row": 7, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT rate(sum(k6_challenge_verification_performance_http_reqs), 1 second) AS 'req/s' FACET endpoint TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Non-200 responses by endpoint",
+          "layout": { "column": 7, "row": 7, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT sum(k6_challenge_verification_performance_http_reqs) WHERE status != '200' FACET endpoint TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Check pass ratio by endpoint",
+          "layout": { "column": 1, "row": 10, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT average(k6_challenge_verification_performance_checks.total) * 100 AS 'pass %' FACET endpoint TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Server processing time / TTFB (http_req_waiting) by endpoint",
+          "layout": { "column": 7, "row": 10, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT average(k6_challenge_verification_performance_http_req_waiting) FACET endpoint TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Virtual Users (VUs) over time",
+          "layout": { "column": 1, "row": 13, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT max(k6_challenge_verification_performance_vus) AS 'VUs' TIMESERIES" }
+            ],
+            "legend": { "enabled": true },
+            "yAxisLeft": { "zero": true },
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Requests by endpoint & status",
+          "layout": { "column": 7, "row": 13, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              { "accountIds": [2665918], "query": "FROM Metric SELECT sum(k6_challenge_verification_performance_http_reqs) AS 'requests' FACET endpoint, status" }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        }
+      ]
+    }
+  ]
+}
