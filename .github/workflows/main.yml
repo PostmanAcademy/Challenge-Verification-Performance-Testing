@@ -1,0 +1,50 @@
+name: k6 Load Test (scheduled)
+
+on:
+  # run once a week (Mondays at 06:00 UTC).
+  # NOTE: GitHub's scheduler is best-effort, so runs may still be delayed
+  # or occasionally skipped under load.
+  schedule:
+    - cron: '0 6 * * 1'
+  # allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 test
+        env:
+          # --- HTML artifact report (built-in web dashboard) ---
+          K6_WEB_DASHBOARD: 'true'
+          K6_WEB_DASHBOARD_EXPORT: html-report.html
+
+          # --- Stream metrics to New Relic via OpenTelemetry (OTLP over HTTP) ---
+          K6_OTEL_EXPORTER_PROTOCOL: http/protobuf
+          # US region endpoint (default). For EU accounts use: otlp.eu01.nr-data.net:4318
+          K6_OTEL_HTTP_EXPORTER_ENDPOINT: otlp.nr-data.net:4318
+          K6_OTEL_HTTP_EXPORTER_URL_PATH: /v1/metrics
+          # prefix so k6 metrics are easy to find in New Relic. NOTE: k6 prepends this
+          # directly with no delimiter, so the trailing underscore keeps names readable
+          # (e.g. k6_challenge_verification_performance_http_req_duration)
+          K6_OTEL_METRIC_PREFIX: k6_challenge_verification_performance_
+          # New Relic ingest license key, stored as a repo secret
+          K6_OTEL_HEADERS: api-key=${{ secrets.NEW_RELIC_LICENSE_KEY }}
+        # send metrics to New Relic in addition to the console/HTML report
+        run: k6 run -o opentelemetry api-test.js
+
+      - name: Upload reports
+        if: always() # upload even if thresholds fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-report-${{ github.run_number }}
+          path: |
+            html-report.html
+            summary.json
+          retention-days: 30
