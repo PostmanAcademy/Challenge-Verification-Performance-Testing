@@ -25,10 +25,6 @@ k6 (arrival-rate)  ──▶  Postman /v4/challenge  ──▶  metrics ──�
      │                                                              dashboards + history
      └── HTML report + summary.json (GitHub Actions artifact)
 ```
-
-> 📄 For the full technical context (design decisions, findings, caveats, and the roadmap),
-> see **[PERFORMANCE_TESTING_CONTEXT.md](PERFORMANCE_TESTING_CONTEXT.md)**.
-
 ---
 
 ## 🎯 What it tests
